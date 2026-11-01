@@ -14,8 +14,15 @@ mkdir -p /var/www/html/storage/framework/cache
 mkdir -p /var/www/html/storage/logs
 mkdir -p /var/www/html/storage/app/public
 mkdir -p /var/www/html/storage/app/documents/spmb
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+mkdir -p /var/www/html/database
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+
+# If using SQLite and file does not exist, initialize it
+if [ "$DB_CONNECTION" = "sqlite" ]; then
+    touch /var/www/html/database/database.sqlite
+    chown www-data:www-data /var/www/html/database/database.sqlite
+fi
 
 # Create storage symlink
 php artisan storage:link --force || true
