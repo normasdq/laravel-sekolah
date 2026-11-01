@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('kartu_keluarga')->nullable();
             $table->string('ijazah')->nullable(); // SKL jika belum ada ijazah
             $table->string('akte_kelahiran')->nullable();
-            
+
             // Tambah kolom jadwal tes (opsional disimpan per siswa, atau global di settings)
             // Kita simpan status dokumen siswa ini
             $table->boolean('documents_verified')->default(false);

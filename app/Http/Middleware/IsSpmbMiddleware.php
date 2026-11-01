@@ -18,7 +18,7 @@ class IsSpmbMiddleware
         // 2. Cek Role: Hanya Admin dan SPMB yang boleh lewat
         // Kita cek manual tanpa rumit
         $userRole = auth()->user()->role;
-        
+
         if ($userRole !== 'admin' && $userRole !== 'spmb') {
             // Jika bukan admin dan bukan spmb, tolak
             abort(403, 'Akses ditolak. Halaman ini khusus Admin dan Panitia SPMB.');

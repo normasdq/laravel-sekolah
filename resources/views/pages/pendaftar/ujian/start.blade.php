@@ -37,7 +37,7 @@
                 <div>
                     <h2 class="font-bold text-slate-900 leading-none">Ujian Seleksi Online</h2>
                     <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest font-bold">
-                        {{ auth()->user()->name }}</p>
+                        {{ auth()->user()->registration->name ?? auth()->user()->name }}</p>
                 </div>
             </div>
 
@@ -176,8 +176,16 @@
             btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
         }
 
-        // Timer Logic (90 Menit)
-        let duration = 60 * 60;
+        // Timer Logic (Sinkron dengan Waktu Server)
+        let duration = {{ max(0, (int) now()->diffInSeconds($endTime, false)) }};
+        let isSubmitting = false;
+
+        function submitExam() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+            document.getElementById('exam-form').submit();
+        }
+
         const timerDisplay = document.getElementById('timer');
         const interval = setInterval(() => {
             let h = Math.floor(duration / 3600);
@@ -187,14 +195,14 @@
                 `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
             if (duration <= 0) {
                 clearInterval(interval);
-                document.getElementById('exam-form').submit();
+                submitExam();
             }
             duration--;
         }, 1000);
 
         function confirmFinish() {
             if (confirm('Apakah Anda yakin ingin mengakhiri ujian?')) {
-                document.getElementById('exam-form').submit();
+                submitExam();
             }
         }
 

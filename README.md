@@ -73,7 +73,8 @@ php artisan storage:link
 # Buat database lalu migrasi
 php artisan migrate --seed
 
-# Jalankan
+# Jalankan worker & server aplikasi
+php artisan queue:work
 php artisan serve
 ```
 
@@ -85,7 +86,7 @@ Akses di `http://localhost:8000`.
 
 ### Database
 
-Atuh di `.env`:
+Atur di `.env`:
 
 ```env
 DB_CONNECTION=mysql
@@ -136,8 +137,12 @@ MAIL_FROM_NAME="SMP Tunas Harapan"
 
 | URL | `/admin/login` |
 |-----|----------------|
-| Default akun (seed) | `admin@sekolah.test` / `password` |
+| Akun Default Seed (Dev Only) | `admin@example.com` / `password` |
+| Akun Tambahan Seed | `spmb@example.com`, `penulis@example.com` |
 | Role | `admin`, `spmb`, `penulis` |
+
+> [!CAUTION]
+> Jangan jalankan seeder di lingkungan production. Buat akun administrator dengan password kuat langsung di server production.
 
 ### Menu Admin
 
@@ -185,19 +190,19 @@ Semua halaman tabel mendukung **bulk delete**:
 
 | Masalah | Solusi |
 |---------|--------|
-| SSL certificate error (Midtrans) | Set `curl.cainfo` di `php.ini` |
-| "Undefined array key 10023" | Update vendor Midtrans atau gunakan `CURLOPT_SSL_VERIFYPEER => false` di development |
+| SSL certificate error (Midtrans) | Unduh `cacert.pem` resmi dan set path `curl.cainfo` di `php.ini` |
+| Email verifikasi belum terkirim | Pastikan queue worker berjalan: `php artisan queue:work` |
 | Ujian tidak bisa diakses | Pastikan status pendaftar **"Terverifikasi"** |
-| Pembayaran tidak muncul | Pastikan status pendaftar **"Lulus"** dan admin sudah set nominal biaya |
-| Gambar tidak muncul | Jalankan `php artisan storage:link` |
+| Pembayaran tidak muncul | Pastikan status pendaftar **"Lulus"** dan admin sudah menentukan nominal biaya |
+| Gambar / aset tidak muncul | Jalankan `php artisan storage:link` |
 
 ---
 
 ## Teknologi
 
-- **Laravel 11** — Backend
-- **AdminLTE 3** — Admin panel
-- **Midtrans Snap** — Payment gateway
-- **CBT System** — Ujian online (timer, random soal, auto-score)
-- **DomPDF** — Export PDF
-- **Tailwind CSS** — Frontend publik
+- **Laravel 12** — Backend Framework
+- **AdminLTE 3** — Admin Dashboard Panel
+- **Midtrans Snap** — Payment Gateway Terintegrasi
+- **CBT System** — Ujian online terproteksi (server-side timer, question locking, auto-score)
+- **DomPDF** — Ekspor PDF Bukti Pendaftaran & Invoice
+- **Tailwind CSS v4 & Vite** — Frontend Publik Modern

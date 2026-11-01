@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateRegistrationRequest;
 use App\Models\Registration;
+use App\Services\GeminiAiService;
 use App\Services\SettingService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class RegistrationController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, \App\Services\SawService $sawService)
     {
         $query = Registration::latest();
 
@@ -19,7 +21,7 @@ class RegistrationController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('nisn', 'like', "%{$search}%");
+                    ->orWhere('nisn', 'like', "%{$search}%");
             });
         }
 
@@ -29,24 +31,44 @@ class RegistrationController extends Controller
 
         $registrations = $query->paginate(15)->withQueryString();
 
+        $sawCalc = $sawService->calculate();
+        $sawMap = collect($sawCalc['ranking'])->keyBy(fn ($item) => $item['registration']->id);
+
         $statusCounts = [
             'total' => Registration::count(),
             'pending' => Registration::pending()->count(),
             'verified' => Registration::verified()->count(),
+            'lulus' => Registration::lulus()->count(),
+            'tidak_lulus' => Registration::where('status', 'tidak_lulus')->count(),
             'rejected' => Registration::rejected()->count(),
         ];
 
-        return view('admin.registrations.index', compact('registrations', 'statusCounts'));
+        return view('admin.registrations.index', compact('registrations', 'statusCounts', 'sawMap'));
     }
 
-    public function show(Registration $registration)
+    public function show(Registration $registration, \App\Services\SawService $sawService)
     {
-        return view('admin.registrations.show', compact('registration'));
+        $registration->load(['sawScores', 'examResult']);
+        $sawCandidate = $sawService->getCandidateResult($registration->id);
+        $criteria = \App\Models\SawCriterion::active()->get();
+
+        return view('admin.registrations.show', compact('registration', 'sawCandidate', 'criteria'));
     }
 
     public function update(UpdateRegistrationRequest $request, Registration $registration)
     {
-        $registration->update($request->validated());
+        $data = $request->validated();
+
+        // Jika status diubah manual menjadi lulus dan biaya daftar ulang masih kosong, isi dengan biaya default
+        if (($data['status'] ?? '') === 'lulus' && (! $registration->payment_amount || (float) $registration->payment_amount <= 0)) {
+            $defaultFee = (float) app(SettingService::class)->get('spmb_re_registration_fee', 150000);
+            if ($defaultFee > 0) {
+                $data['payment_amount'] = $defaultFee;
+                $data['payment_status'] = $registration->payment_status ?: 'unpaid';
+            }
+        }
+
+        $registration->update($data);
 
         return redirect()
             ->route('admin.registrations.show', $registration)
@@ -67,7 +89,8 @@ class RegistrationController extends Controller
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
         }
         Registration::whereIn('id', $ids)->delete();
-        return redirect()->back()->with('success', count($ids) . ' data pendaftar berhasil dihapus.');
+
+        return redirect()->back()->with('success', count($ids).' data pendaftar berhasil dihapus.');
     }
 
     /**
@@ -102,20 +125,20 @@ class RegistrationController extends Controller
         }
 
         // Download File
-        $filename = 'spmb_data_' . date('Y-m-d_His') . '.csv';
+        $filename = 'spmb_data_'.date('Y-m-d_His').'.csv';
 
         return response()->streamDownload(function () use ($csvData) {
             $handle = fopen('php://output', 'w');
             // Tambahkan BOM agar UTF-8 terbaca dengan benar di Excel
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
-            
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
             foreach ($csvData as $row) {
                 fputcsv($handle, $row);
             }
             fclose($handle);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
-    
+
     /**
      * Export data ke PDF
      */
@@ -132,16 +155,16 @@ class RegistrationController extends Controller
         $pdf = Pdf::loadView('admin.registrations.pdf', compact('registrations', 'schoolName'));
 
         // Download file PDF
-        return $pdf->download('data-pendaftar-' . date('d-m-Y') . '.pdf');
+        return $pdf->download('data-pendaftar-'.date('d-m-Y').'.pdf');
     }
 
     public function verifyDocuments($id)
     {
         $registration = Registration::findOrFail($id);
-        
+
         $registration->update([
             'status' => 'verified',
-            'documents_verified' => true
+            'documents_verified' => true,
         ]);
 
         // Ambil Data Jadwal dari Settings
@@ -176,4 +199,37 @@ class RegistrationController extends Controller
 
         return redirect()->back()->with('success', 'Biaya pendaftaran berhasil diperbarui.');
     }
+
+    public function showDocument(Registration $registration, string $type)
+    {
+        if (! in_array($type, ['kartu_keluarga', 'ijazah', 'akte_kelahiran', 'pas_foto'])) {
+            abort(404);
+        }
+
+        $path = $registration->{$type};
+        if (! $path) {
+            abort(404, 'Dokumen belum diunggah.');
+        }
+
+        if (Storage::disk('local')->exists($path)) {
+            return Storage::disk('local')->response($path);
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->response($path);
+        }
+
+        abort(404, 'File dokumen tidak ditemukan.');
+    }
+
+    /**
+     * Audit berkas pendaftar (KK, Akte, Ijazah) menggunakan AI OCR Multimodal.
+     */
+    public function aiAudit(Registration $registration, GeminiAiService $aiService)
+    {
+        $result = $aiService->auditRegistrationDocuments($registration);
+
+        return response()->json($result);
+    }
 }
+

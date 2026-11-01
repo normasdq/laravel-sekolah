@@ -5,10 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Registration extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    protected static function booted()
+    {
+        static::forceDeleting(function (Registration $registration) {
+            foreach (['kartu_keluarga', 'ijazah', 'akte_kelahiran', 'pas_foto'] as $doc) {
+                if ($registration->{$doc}) {
+                    Storage::disk('local')->delete($registration->{$doc});
+                }
+            }
+        });
+    }
 
     protected $fillable = [
         'user_id',             // Relasi ke akun login
@@ -26,9 +39,10 @@ class Registration extends Model
         'parent_phone',
         'status',
         'notes',
-        'kartu_keluarga', 
-        'ijazah', 
-        'akte_kelahiran', 
+        'pas_foto',
+        'kartu_keluarga',
+        'ijazah',
+        'akte_kelahiran',
         'documents_verified',
         'payment_amount',
         'payment_status',
@@ -57,7 +71,17 @@ class Registration extends Model
 
     public function payment()
     {
-        return $this->hasOne(\App\Models\Payment::class);
+        return $this->hasOne(Payment::class);
+    }
+
+    public function sawScores()
+    {
+        return $this->hasMany(SawScore::class);
+    }
+
+    public function examResult()
+    {
+        return $this->hasOne(ExamResult::class, 'user_id', 'user_id')->latestOfMany();
     }
 
     // =============================
@@ -127,9 +151,9 @@ class Registration extends Model
 
     public function getDocumentsCompleteAttribute(): bool
     {
-        return !empty($this->kartu_keluarga) 
-            && !empty($this->ijazah) 
-            && !empty($this->akte_kelahiran);
+        return ! empty($this->kartu_keluarga)
+            && ! empty($this->ijazah)
+            && ! empty($this->akte_kelahiran);
     }
 
     public function getPaymentStatusLabelAttribute(): string
@@ -154,6 +178,6 @@ class Registration extends Model
 
     public function getPaymentAmountFormattedAttribute(): string
     {
-        return $this->payment_amount ? 'Rp ' . number_format($this->payment_amount, 0, ',', '.') : '-';
+        return $this->payment_amount ? 'Rp '.number_format($this->payment_amount, 0, ',', '.') : '-';
     }
 }

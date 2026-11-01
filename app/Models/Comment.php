@@ -16,6 +16,10 @@ class Comment extends Model
         'is_approved',
     ];
 
+    protected $hidden = [
+        'email',
+    ];
+
     public function post()
     {
         return $this->belongsTo(Post::class);

@@ -18,7 +18,8 @@ class SettingService
                 return SiteSetting::where('key', $key)->value('value') ?? $default;
             });
         } catch (\Throwable $e) {
-            Log::warning("Gagal memuat setting '{$key}': " . $e->getMessage());
+            Log::warning("Gagal memuat setting '{$key}': ".$e->getMessage());
+
             return $default;
         }
     }
@@ -33,18 +34,18 @@ class SettingService
                 ['key' => $key],
                 ['value' => $value]
             );
-            
+
             try {
                 // HAPUS cache lama
                 Cache::forget("site_setting_{$key}");
-                
+
                 // SIMPAN data baru ke cache (Baris ini yang sebelumnya tidak ada)
                 Cache::put("site_setting_{$key}", $value, 3600);
             } catch (\Throwable $e) {
                 // Abaikan error jika cache gagal
             }
         } catch (\Throwable $e) {
-            Log::error("Gagal menyimpan setting '{$key}': " . $e->getMessage());
+            Log::error("Gagal menyimpan setting '{$key}': ".$e->getMessage());
         }
     }
 
@@ -56,7 +57,8 @@ class SettingService
         try {
             return SiteSetting::pluck('value', 'key')->toArray();
         } catch (\Throwable $e) {
-            Log::warning("Gagal memuat semua setting: " . $e->getMessage());
+            Log::warning('Gagal memuat semua setting: '.$e->getMessage());
+
             return [];
         }
     }

@@ -12,7 +12,7 @@ class FileUploadService
         'image/jpeg', 'image/png', 'image/jpg', 'image/webp',
     ];
 
-    public function upload(UploadedFile $file, string $directory = 'uploads', int $maxWidth = null): string
+    public function upload(UploadedFile $file, string $directory = 'uploads', ?int $maxWidth = null): string
     {
         $this->validateFile($file);
 
@@ -24,7 +24,7 @@ class FileUploadService
 
     public function delete(string $path): bool
     {
-        if (empty($path) || !Storage::disk('public')->exists($path)) {
+        if (empty($path) || ! Storage::disk('public')->exists($path)) {
             return false;
         }
 
@@ -33,7 +33,7 @@ class FileUploadService
 
     private function validateFile(UploadedFile $file): void
     {
-        if (!in_array($file->getMimeType(), self::ALLOWED_MIMES)) {
+        if (! in_array($file->getMimeType(), self::ALLOWED_MIMES)) {
             throw new \InvalidArgumentException('Format file tidak diizinkan. Gunakan format JPEG, PNG, atau WebP.');
         }
 
@@ -44,6 +44,6 @@ class FileUploadService
 
     private function generateFilename(UploadedFile $file): string
     {
-        return Str::random(16) . '_' . time() . '.' . $file->getClientOriginalExtension();
+        return Str::random(16).'_'.time().'.'.$file->getClientOriginalExtension();
     }
 }

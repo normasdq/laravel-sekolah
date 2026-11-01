@@ -19,6 +19,7 @@ class SiteSetting extends Model
     {
         return Cache::remember("site_setting_{$key}", 3600, function () use ($key, $default) {
             $setting = static::where('key', $key)->first();
+
             return $setting ? $setting->value : $default;
         });
     }

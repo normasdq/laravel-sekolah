@@ -35,13 +35,13 @@ class SettingController extends Controller
             'spmb_info' => 'nullable|string|max:2000',
             'headmaster_welcome' => 'nullable|string|max:5000',
 
-
             'spmb_exam_date' => 'nullable|string|max:20',
             'spmb_exam_time' => 'nullable|string|max:20',
             'spmb_exam_location' => 'nullable|string|max:255',
+            'spmb_re_registration_fee' => 'nullable|numeric|min:0',
             'spmb_disabled' => 'nullable',
             'google_site_verification' => 'nullable|string|max:255',
-            'msvalidate.01' => 'nullable|string|max:255',
+            'msvalidate_01' => 'nullable|string|max:255',
         ]);
 
         $fields = [
@@ -49,7 +49,8 @@ class SettingController extends Controller
             'school_address', 'school_phone', 'school_email',
             'school_facebook', 'school_instagram', 'school_youtube', 'school_tiktok',
             'spmb_info', 'spmb_exam_date', 'spmb_exam_time', 'spmb_exam_location',
-            'headmaster_welcome', 'spmb_disabled', 'google_site_verification', 'msvalidate.01'
+            'spmb_re_registration_fee',
+            'headmaster_welcome', 'spmb_disabled', 'google_site_verification', 'msvalidate_01',
         ];
 
         foreach ($fields as $field) {
@@ -60,7 +61,7 @@ class SettingController extends Controller
                 // Untuk input biasa, ambil valuenya atau biarkan string kosong
                 $value = $request->input($field, '');
             }
-            
+
             $this->settingService->set($field, $value);
         }
 

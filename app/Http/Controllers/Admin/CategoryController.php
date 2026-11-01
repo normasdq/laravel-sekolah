@@ -13,6 +13,7 @@ class CategoryController extends Controller
     {
         // Menggunakan withCount agar query lebih efisien saat menghitung berita
         $categories = Category::withCount('posts')->latest()->paginate(10);
+
         return view('admin.categories.index', compact('categories'));
     }
 
@@ -21,15 +22,30 @@ class CategoryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
         ], [
-            'name.unique' => 'Nama kategori sudah ada.'
+            'name.unique' => 'Nama kategori sudah ada.',
         ]);
 
-        $category = new Category();
+        $category = new Category;
         $category->name = $request->name;
         $category->slug = Str::slug($request->name);
         $category->save();
 
         return redirect()->back()->with('success', 'Kategori berhasil ditambahkan.');
+    }
+
+    public function update(Request $request, Category $category)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+        ], [
+            'name.unique' => 'Nama kategori sudah digunakan.',
+        ]);
+
+        $category->name = $request->name;
+        $category->slug = Str::slug($request->name);
+        $category->save();
+
+        return redirect()->back()->with('success', 'Kategori berhasil diperbarui.');
     }
 
     public function destroy(Category $category)
@@ -40,6 +56,7 @@ class CategoryController extends Controller
         }
 
         $category->delete();
+
         return redirect()->back()->with('success', 'Kategori berhasil dihapus.');
     }
 
@@ -56,6 +73,7 @@ class CategoryController extends Controller
             }
             $category->delete();
         }
-        return redirect()->back()->with('success', count($ids) . ' kategori berhasil dihapus.');
+
+        return redirect()->back()->with('success', count($ids).' kategori berhasil dihapus.');
     }
 }

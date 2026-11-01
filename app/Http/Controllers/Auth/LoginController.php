@@ -23,12 +23,12 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
 
-            // Jika admin, ke dashboard admin. Jika user/pendaftar, ke form SPMB.
-            if (auth()->user()->role === 'admin') {
+            // Jika staf admin (admin, spmb, penulis), arahkan ke dashboard admin. Jika user/pendaftar, ke dashboard pendaftar.
+            if (in_array(auth()->user()->role, ['admin', 'spmb', 'penulis'])) {
                 return redirect()->intended('admin/dashboard');
             }
 
-            return redirect()->intended('spmb');
+            return redirect()->intended('spmb/dashboard');
         }
 
         return back()->withErrors([
@@ -41,6 +41,7 @@ class LoginController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/');
     }
 }

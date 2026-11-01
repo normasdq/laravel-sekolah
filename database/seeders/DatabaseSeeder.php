@@ -2,15 +2,20 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-
-use App\Models\User;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->isProduction()) {
+            $this->command?->warn('PERINGATAN: DatabaseSeeder tidak dijalankan pada mode production untuk melindungi akun default.');
+
+            return;
+        }
+
         User::create([
             'name' => 'Administrator',
             'email' => 'admin@example.com',
@@ -42,6 +47,7 @@ class DatabaseSeeder extends Seeder
             GallerySeeder::class,
             SiteSettingSeeder::class,
             QuestionSeeder::class,
+            SawCriteriaSeeder::class,
         ]);
     }
-};
+}

@@ -261,7 +261,7 @@
             <div class="amount-box">
                 <div>
                     <div class="amount-label">Total Pembayaran</div>
-                    <div style="font-size:10px;color:#888;margin-top:2px;">Biaya Pendaftaran SPMB</div>
+                    <div style="font-size:10px;color:#888;margin-top:2px;">Biaya Daftar Ulang Siswa Baru (SPMB)</div>
                 </div>
                 <div class="amount-value">Rp {{ number_format($payment->amount, 0, ',', '.') }}</div>
             </div>
@@ -308,7 +308,7 @@
 
             <div style="text-align:center;font-size:10px;color:#999;line-height:1.6;">
                 Invoice ini sah dan diproses melalui sistem pembayaran online.<br>
-                Terima kasih telah melakukan pembayaran biaya pendaftaran SPMB.
+                Terima kasih telah menyelesaikan pembayaran biaya daftar ulang siswa baru.
             </div>
         </div>
 
@@ -319,9 +319,9 @@
             </div>
             <div class="footer-right">
                 <div class="signature-line">
-                    {{ $settings->get('school_name', 'Kepala Sekolah') }}
+                    Bendahara SPMB {{ $settings->get('school_short_name', 'Sekolah') }}
                 </div>
-                <div class="signature-label">Kepala Sekolah</div>
+                <div class="signature-label">Administrasi Keuangan</div>
             </div>
         </div>
 

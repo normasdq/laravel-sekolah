@@ -77,6 +77,7 @@ class GalleryController extends Controller
             $this->fileUpload->delete($gallery->image);
             $gallery->delete();
         }
-        return redirect()->back()->with('success', count($ids) . ' foto berhasil dihapus.');
+
+        return redirect()->back()->with('success', count($ids).' foto berhasil dihapus.');
     }
 }

@@ -28,7 +28,7 @@ class ContactController extends Controller
 
     public function show(Contact $contact)
     {
-        if (!$contact->is_read) {
+        if (! $contact->is_read) {
             $contact->markAsRead();
         }
 
@@ -49,7 +49,8 @@ class ContactController extends Controller
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
         }
         Contact::whereIn('id', $ids)->delete();
-        return redirect()->back()->with('success', count($ids) . ' pesan berhasil dihapus.');
+
+        return redirect()->back()->with('success', count($ids).' pesan berhasil dihapus.');
     }
 
     public function markAllRead()

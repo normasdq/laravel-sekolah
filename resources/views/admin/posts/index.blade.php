@@ -1,137 +1,159 @@
 @extends('admin.layouts.app')
 
-@section('page_title', 'Kelola Berita')
-@section('breadcrumb', ' > ' . 'Kelola Berita')
+@section('title', 'Artikel Berita')
+@section('page_title', 'Artikel Berita')
 
 @section('content')
-    <div class="card">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <h3 class="card-title font-weight-bold"><i class="fas fa-newspaper mr-2 text-info"></i>Daftar Berita</h3>
-                <div class="d-flex gap-2">
-                    <button type="submit" form="bulk-delete-form" id="bulk-delete-btn" class="btn btn-danger btn-sm"
-                        style="display:none;" onclick="return confirm('Yakin hapus berita yang dipilih?')">
-                        <i class="fas fa-trash mr-1"></i> Hapus Terpilih
-                    </button>
-                    <a href="{{ route('admin.posts.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus mr-1"></i>
-                        Tambah Berita</a>
-                </div>
-            </div>
+    <!-- Top Page Header -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-3" style="gap: 12px;">
+        <div>
+            <h4 class="font-weight-bold text-dark mb-1">
+                <i class="fas fa-newspaper text-primary mr-2"></i>Artikel Berita Sekolah
+            </h4>
+            <p class="text-muted small mb-0">
+                Kelola publikasi berita, pengumuman, dan artikel kegiatan sekolah.
+            </p>
         </div>
-        <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+            <button type="submit" form="bulk-delete-form" id="bulk-delete-btn" class="btn btn-danger btn-sm shadow-sm font-weight-bold"
+                style="display:none;" onclick="return confirm('Yakin hapus berita yang dipilih?')">
+                <i class="fas fa-trash mr-1"></i> Hapus Terpilih
+            </button>
+            <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary btn-sm font-weight-bold">
+                <i class="fas fa-tags mr-1"></i> Kelola Kategori
+            </a>
+            <a href="{{ route('admin.posts.create') }}" class="btn btn-primary btn-sm shadow-sm font-weight-bold">
+                <i class="fas fa-plus mr-1"></i> Tulis Berita Baru
+            </a>
+        </div>
+    </div>
 
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            @endif
-
-            <!-- Search & Filter -->
-            <form method="GET" action="{{ route('admin.posts.index') }}" class="row mb-4">
+    <!-- Filter & Pencarian -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-3">
+            <form method="GET" action="{{ route('admin.posts.index') }}" class="row align-items-center" style="row-gap: 8px;">
                 <div class="col-md-5">
                     <div class="input-group input-group-sm">
                         <input type="text" name="search" value="{{ request('search') }}" class="form-control"
-                            placeholder="Cari judul berita...">
+                            placeholder="Cari judul artikel berita...">
                         <div class="input-group-append">
-                            <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
-                            @if (request('search'))
-                                <a href="{{ route('admin.posts.index') }}" class="btn btn-default"><i
-                                        class="fas fa-times"></i></a>
-                            @endif
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-search mr-1"></i> Cari</button>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
-                        <option value="">-- Semua Status --</option>
-                        <option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Terbit</option>
-                        <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
+                        <option value="">-- Semua Status Publikasi --</option>
+                        <option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Terbit (Published)</option>
+                        <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Konsep (Draft)</option>
                     </select>
                 </div>
+                @if (request('search') || request('status'))
+                    <div class="col-md-3">
+                        <a href="{{ route('admin.posts.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-undo mr-1"></i> Reset Filter
+                        </a>
+                    </div>
+                @endif
             </form>
+        </div>
+    </div>
 
+    <!-- Tabel Daftar Berita -->
+    <div class="card shadow-sm mb-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h3 class="card-title font-weight-bold mb-0">
+                <i class="fas fa-list-ul text-primary mr-2"></i>Daftar Artikel Berita
+            </h3>
+            <span class="badge badge-light border px-2 py-1">
+                Total: <strong>{{ $posts->total() }}</strong> Artikel
+            </span>
+        </div>
+        <div class="card-body table-responsive p-0">
             <form id="bulk-delete-form" method="POST" action="{{ route('admin.posts.bulk-delete') }}">
                 @csrf
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="thead-light">
+                <table class="table table-hover table-striped align-middle mb-0">
+                    <thead>
                         <tr>
-                            <th style="width:40px"><input type="checkbox" id="select-all"></th>
-                            <th style="width:60px" class="text-center">Gambar</th>
-                            <th>Judul & Slug</th>
-                            <th style="width:150px">Kategori</th>
-                            <th style="width:90px" class="text-center">Status</th>
-                            <th style="width:120px">Tanggal</th>
-                            <th style="width:100px" class="text-center">Aksi</th>
+                            <th style="width: 44px;" class="text-center"><input type="checkbox" id="select-all"></th>
+                            <th style="width: 75px;" class="text-center">Gambar</th>
+                            <th>Judul Artikel & Slug</th>
+                            <th style="width: 160px;">Kategori</th>
+                            <th style="width: 110px;" class="text-center">Status</th>
+                            <th style="width: 130px;" class="text-center">Tanggal</th>
+                            <th style="width: 110px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($posts as $post)
                             <tr>
-                                <td><input type="checkbox" class="row-checkbox" name="ids[]" value="{{ $post->id }}"></td>
+                                <td class="text-center"><input type="checkbox" class="row-checkbox" name="ids[]" value="{{ $post->id }}"></td>
                                 <td class="text-center">
-                                    <img src="{{ $post->image ? Storage::url($post->image) : 'https://via.placeholder.com/50x50?text=No+Img' }}"
-                                        alt=""
-                                        style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                                    @if ($post->image)
+                                        <img src="{{ Storage::url($post->image) }}" alt="{{ $post->title }}" class="img-thumb">
+                                    @else
+                                        <div class="img-thumb d-inline-flex align-items-center justify-content-center bg-light text-muted">
+                                            <i class="fas fa-image"></i>
+                                        </div>
+                                    @endif
                                 </td>
                                 <td>
                                     <a href="{{ route('berita.detail', $post->slug) }}" target="_blank"
-                                        class="font-weight-semibold text-dark d-block">
-                                        {{ Str::limit($post->title, 60) }}
+                                        class="font-weight-bold text-dark d-block">
+                                        {{ Str::limit($post->title, 65) }}
                                     </a>
-                                    <small class="text-muted"><i class="fas fa-link mr-1"></i>{{ $post->slug }}</small>
+                                    <small class="text-muted"><i class="fas fa-link mr-1"></i>{{ Str::limit($post->slug, 55) }}</small>
                                 </td>
                                 <td>
                                     @if ($post->category)
-                                        <span class="badge badge-outline-info text-info border border-info px-2">
-                                            <i class="fas fa-tag mr-1 small"></i>{{ $post->category->name }}
+                                        <span class="badge badge-info px-2 py-1">
+                                            {{ $post->category->name }}
                                         </span>
                                     @else
-                                        <small class="text-secondary italic">Tanpa Kategori</small>
+                                        <span class="badge badge-secondary">Tanpa Kategori</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
                                     @if ($post->is_published)
-                                        <span class="badge badge-success px-2">Terbit</span>
+                                        <span class="badge badge-success px-2 py-1">Terbit</span>
                                     @else
-                                        <span class="badge badge-secondary px-2">Draft</span>
+                                        <span class="badge badge-secondary px-2 py-1">Draft</span>
                                     @endif
                                 </td>
-                                <td><small class="text-muted">{{ $post->created_at->format('d M Y') }}</small></td>
+                                <td class="text-center"><small class="text-muted font-weight-semibold">{{ $post->created_at->format('d M Y') }}</small></td>
                                 <td class="text-center">
-                                    <div class="btn-group">
-                                        <a href="{{ route('admin.posts.edit', $post) }}"
-                                            class="btn btn-info btn-xs btn-flat" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form method="POST" action="{{ route('admin.posts.destroy', $post) }}"
-                                            class="d-inline" onsubmit="return confirm('Yakin hapus berita ini?')">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-xs btn-flat" title="Hapus">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <a href="{{ route('admin.posts.edit', $post) }}"
+                                        class="btn btn-info btn-xs" title="Edit Berita">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-xs" title="Hapus Berita"
+                                        onclick="if(confirm('Yakin hapus berita ini?')) document.getElementById('delete-post-{{ $post->id }}').submit();">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="fas fa-folder-open fa-3x mb-3 d-block opacity-50"></i>
-                                    Tidak ada data berita yang ditemukan.
+                                    <i class="fas fa-newspaper fa-2x mb-2 d-block opacity-50"></i>
+                                    Tidak ada data artikel berita yang ditemukan.
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
-            </div>
             </form>
-            <div class="mt-3 d-flex justify-content-end">
-                {{ $posts->links() }}
-            </div>
+
+            @foreach($posts as $post)
+                <form id="delete-post-{{ $post->id }}" method="POST" action="{{ route('admin.posts.destroy', $post) }}" class="d-none">
+                    @csrf @method('DELETE')
+                </form>
+            @endforeach
         </div>
+        @if ($posts->hasPages())
+            <div class="card-footer bg-white d-flex justify-content-end">
+                {{ $posts->withQueryString()->links() }}
+            </div>
+        @endif
     </div>
 @endsection

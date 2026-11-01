@@ -1,16 +1,27 @@
 @extends('admin.layouts.app')
 
 @section('page_title', 'Pengaturan Situs')
-@section('breadcrumb', ' > Kelola Pengaturan')
 
 @section('content')
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title font-weight-bold">
-            <i class="fas fa-cog mr-2 text-gray-600"></i>Pengaturan Situs
-        </h3>
+    <!-- Top Page Header -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-3" style="gap: 12px;">
+        <div>
+            <h4 class="font-weight-bold text-dark mb-1">
+                <i class="fas fa-sliders text-primary mr-2"></i>Pengaturan Situs & SPMB
+            </h4>
+            <p class="text-muted small mb-0">
+                Kelola informasi profil sekolah, kontak resmi, tautan media sosial, serta jadwal dan biaya SPMB.
+            </p>
+        </div>
     </div>
-    <div class="card-body">
+
+    <div class="card shadow-sm mb-0">
+        <div class="card-header bg-white py-3">
+            <h3 class="card-title font-weight-bold mb-0">
+                <i class="fas fa-cog mr-2 text-primary"></i>Konfigurasi Sistem
+            </h3>
+        </div>
+        <div class="card-body">
         <form method="POST" action="{{ route('admin.settings.update') }}">
             @csrf @method('PUT')
 
@@ -64,8 +75,8 @@
 
                             <div class="form-group">
                                 <label>Bing Verification</label>
-                                <input type="text" name="msvalidate.01"
-                                    value="{{ old('msvalidate.01', $settings['msvalidate.01'] ?? '') }}"
+                                <input type="text" name="msvalidate_01"
+                                    value="{{ old('msvalidate_01', $settings['msvalidate_01'] ?? $settings['msvalidate.01'] ?? '') }}"
                                     class="form-control">
                             </div>
                         </div>
@@ -162,6 +173,20 @@
                         </div>
                     </div>
                     <p class="text-muted small">Peserta hanya bisa memulai ujian setelah waktu yang ditentukan tiba.</p>
+
+                    <hr class="my-4">
+                    <h5 class="font-weight-bold mb-3">Biaya Daftar Ulang Siswa Baru</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Nominal Biaya Daftar Ulang Default (Rp)</label>
+                                <input type="number" name="spmb_re_registration_fee" min="0" step="5000"
+                                    value="{{ old('spmb_re_registration_fee', $settings['spmb_re_registration_fee'] ?? '150000') }}"
+                                    class="form-control" placeholder="Contoh: 150000">
+                                <small class="text-muted">Otomatis diterapkan pada pendaftar yang dinyatakan <strong>Lulus</strong> melalui SPK SAW apabila nominal biaya daftar ulangnya belum diatur secara khusus.</small>
+                            </div>
+                        </div>
+                    </div>
 
                     <hr class="my-4">
 

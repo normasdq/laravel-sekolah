@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CommentController extends Controller
 {
@@ -13,7 +14,9 @@ class CommentController extends Controller
         $comments = $post->comments()
             ->approved()
             ->root()
-            ->with('replies')
+            ->with(['replies' => function ($query) {
+                $query->approved()->latest();
+            }])
             ->latest()
             ->get();
 
@@ -24,15 +27,24 @@ class CommentController extends Controller
     {
         $rules = [
             'body' => 'required|string|max:5000',
-            'parent_id' => 'nullable|exists:comments,id',
+            'parent_id' => [
+                'nullable',
+                Rule::exists('comments', 'id')->where('post_id', $post->id),
+            ],
             'email' => 'nullable|email|max:255',
         ];
 
-        if (!$request->user()) {
+        if (! $request->user()) {
             $rules['name'] = 'required|string|max:100';
         }
 
         $data = $request->validate($rules);
+
+        // Sanitasi teks agar aman dari tag HTML yang disisipkan
+        $data['body'] = strip_tags($data['body']);
+        if (isset($data['name'])) {
+            $data['name'] = strip_tags($data['name']);
+        }
 
         if ($request->user()) {
             $data['user_id'] = $request->user()->id;

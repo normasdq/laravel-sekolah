@@ -3,7 +3,7 @@
 @section('title', 'Ujian Masuk Online - SMP Tunas Harapan')
 
 @section('content')
-    <section class="min-h-screen bg-gray-50 pt-32 pb-20">
+    <section class="min-h-screen bg-white pt-32 pb-20">
         <div class="max-w-4xl mx-auto px-6">
             <div class="fade-up">
                 <h1 class="font-display text-3xl font-black text-dark-900 mb-2">Computer Based Test (CBT)</h1>

@@ -23,7 +23,7 @@ class GallerySeeder extends Seeder
 
         foreach ($galleries as $gallery) {
             DB::table('galleries')->insert(array_merge($gallery, [
-                'image' => 'https://picsum.photos/seed/' . Str::slug($gallery['title']) . '/800/600',
+                'image' => 'https://picsum.photos/seed/'.Str::slug($gallery['title']).'/800/600',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));

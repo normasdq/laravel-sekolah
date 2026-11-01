@@ -98,6 +98,7 @@ class TeacherController extends Controller
             }
             $teacher->delete();
         }
-        return redirect()->back()->with('success', count($ids) . ' data berhasil dihapus.');
+
+        return redirect()->back()->with('success', count($ids).' data berhasil dihapus.');
     }
 }

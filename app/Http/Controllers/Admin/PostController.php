@@ -21,7 +21,7 @@ class PostController extends Controller
         $query = Post::with(['category', 'user'])->latest();
 
         if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+            $query->where('title', 'like', '%'.$request->search.'%');
         }
 
         if ($request->filled('status')) {
@@ -29,6 +29,7 @@ class PostController extends Controller
         }
 
         $posts = $query->paginate(10)->withQueryString();
+
         return view('admin.posts.index', compact('posts'));
     }
 
@@ -40,7 +41,7 @@ class PostController extends Controller
     public function store(StorePostRequest $request)
     {
         $data = $request->validated();
-        
+
         // Slug Logic
         $data['slug'] = $request->filled('slug') ? Str::slug($request->slug) : Str::slug($request->title);
         $data['user_id'] = auth()->id();
@@ -50,7 +51,10 @@ class PostController extends Controller
             $data['image'] = $this->fileUpload->upload($request->file('image'), 'posts');
         }
 
+        $data['content'] = $this->sanitizeHtml($data['content']);
+
         Post::create($data);
+
         return redirect()->route('admin.posts.index')->with('success', 'Berita berhasil diterbitkan.');
     }
 
@@ -62,23 +66,41 @@ class PostController extends Controller
     public function update(UpdatePostRequest $request, Post $post)
     {
         $data = $request->validated();
-        
+
         $data['slug'] = $request->filled('slug') ? Str::slug($request->slug) : Str::slug($request->title);
         $data['is_published'] = $request->has('is_published');
 
         if ($request->hasFile('image')) {
-            if ($post->image) $this->fileUpload->delete($post->image);
+            if ($post->image) {
+                $this->fileUpload->delete($post->image);
+            }
             $data['image'] = $this->fileUpload->upload($request->file('image'), 'posts');
         }
 
+        $data['content'] = $this->sanitizeHtml($data['content']);
+
         $post->update($data);
+
         return redirect()->route('admin.posts.index')->with('success', 'Berita berhasil diperbarui.');
+    }
+
+    private function sanitizeHtml(string $content): string
+    {
+        $allowedTags = '<p><br><strong><em><b><i><u><s><h1><h2><h3><h4><h5><h6><ul><ol><li><blockquote><table><thead><tbody><tr><th><td><a><img><hr>';
+        $cleaned = strip_tags($content, $allowedTags);
+        $cleaned = preg_replace('/(\s+)(on\w+|formaction)\s*=\s*(["\'][^"\']*["\']|[^\s>]+)/i', '', $cleaned);
+        $cleaned = preg_replace('/href\s*=\s*(["\'])\s*javascript:[^"\']*\1/i', 'href="#"', $cleaned);
+
+        return $cleaned;
     }
 
     public function destroy(Post $post)
     {
-        if ($post->image) $this->fileUpload->delete($post->image);
+        if ($post->image) {
+            $this->fileUpload->delete($post->image);
+        }
         $post->delete();
+
         return redirect()->route('admin.posts.index')->with('success', 'Berita berhasil dihapus.');
     }
 
@@ -90,9 +112,12 @@ class PostController extends Controller
         }
         $posts = Post::whereIn('id', $ids)->get();
         foreach ($posts as $post) {
-            if ($post->image) $this->fileUpload->delete($post->image);
+            if ($post->image) {
+                $this->fileUpload->delete($post->image);
+            }
             $post->delete();
         }
-        return redirect()->back()->with('success', count($ids) . ' berita berhasil dihapus.');
+
+        return redirect()->back()->with('success', count($ids).' berita berhasil dihapus.');
     }
 }

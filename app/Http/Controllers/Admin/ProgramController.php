@@ -62,6 +62,7 @@ class ProgramController extends Controller
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
         }
         Program::whereIn('id', $ids)->delete();
-        return redirect()->back()->with('success', count($ids) . ' program berhasil dihapus.');
+
+        return redirect()->back()->with('success', count($ids).' program berhasil dihapus.');
     }
 }

@@ -1,19 +1,30 @@
 @extends('admin.layouts.app')
 
 @section('page_title', 'Detail Pembayaran')
-@section('breadcrumb', ' > ' . ' Pembayaran' . ' > ' . 'Detail')
 
 @section('content')
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title font-weight-bold">
-                <i class="fas fa-credit-card mr-2 text-primary"></i>Detail Pembayaran
+    <!-- Top Page Header -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-3" style="gap: 12px;">
+        <div>
+            <h4 class="font-weight-bold text-dark mb-1">
+                <i class="fas fa-receipt text-primary mr-2"></i>Detail Transaksi Pembayaran
+            </h4>
+            <p class="text-muted small mb-0">
+                Rincian transaksi pembayaran daftar ulang siswa baru beserta status integrasi pembayaran.
+            </p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+            <a href="{{ route('admin.payments.index') }}" class="btn btn-outline-secondary btn-sm shadow-sm font-weight-bold">
+                <i class="fas fa-arrow-left mr-1"></i> Kembali ke Histori Pembayaran
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-0">
+        <div class="card-header bg-white py-3">
+            <h3 class="card-title font-weight-bold mb-0">
+                <i class="fas fa-credit-card mr-2 text-primary"></i>Informasi Pembayaran #{{ $payment->transaction_id }}
             </h3>
-            <div class="card-tools">
-                <a href="{{ route('admin.payments.index') }}" class="btn btn-default btn-sm">
-                    <i class="fas fa-arrow-left"></i> Kembali
-                </a>
-            </div>
         </div>
         <div class="card-body">
             <div class="row">

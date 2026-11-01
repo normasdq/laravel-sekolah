@@ -11,7 +11,7 @@ class PublicContactController extends Controller
 {
     public function store(PublicContactRequest $request)
     {
-        $key = 'contact:' . $request->ip();
+        $key = 'contact:'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $seconds = RateLimiter::availableIn($key);

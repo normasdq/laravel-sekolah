@@ -44,4 +44,4 @@ class ProgramSeeder extends Seeder
             ]));
         }
     }
-};
+}

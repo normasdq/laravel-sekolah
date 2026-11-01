@@ -295,12 +295,16 @@
         <div class="content">
             <div class="participant-row">
                 <div class="photo">
-                    <div class="placeholder">
-                        <div class="icon">👤</div>
-                        <div class="label">Pas Foto</div>
-                    </div>
-                    <div class="border-decor-tl"></div>
-                    <div class="border-decor"></div>
+                    @if (!empty($photoDataUri))
+                        <img src="{{ $photoDataUri }}" alt="Pas Foto" style="width: 120px; height: 150px; object-fit: cover; display: block;">
+                    @else
+                        <div class="placeholder">
+                            <div class="icon">👤</div>
+                            <div class="label">Pas Foto</div>
+                        </div>
+                        <div class="border-decor-tl"></div>
+                        <div class="border-decor"></div>
+                    @endif
                 </div>
                 <div class="info">
                     <table>
@@ -367,9 +371,9 @@
             </div>
             <div class="footer-right">
                 <div class="signature-line">
-                    {{ $settings->get('school_name', 'Kepala Sekolah') }}
+                    Panitia SPMB {{ $settings->get('school_short_name', 'Sekolah') }}
                 </div>
-                <div class="signature-label">Kepala Sekolah</div>
+                <div class="signature-label">Verifikator &amp; Panitia Seleksi</div>
             </div>
         </div>
 

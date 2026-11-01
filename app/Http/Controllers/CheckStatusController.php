@@ -3,57 +3,63 @@
 namespace App\Http\Controllers;
 
 use App\Models\Registration;
+use App\Services\SawService;
 use App\Services\SettingService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class CheckStatusController extends Controller
 {
-    public function show()
+    public function show(SawService $sawService)
     {
-        // Cari data pendaftaran berdasarkan user yang sedang login
-        $registration = \App\Models\Registration::where('user_id', auth()->id())->first();
+        $registration = Registration::where('user_id', Auth::id())->first();
 
-        // Jika belum mendaftar, arahkan untuk mengisi formulir dulu
-        if (!$registration) {
+        if (! $registration) {
             return redirect()->route('spmb')->with('error', 'Anda belum mengisi formulir pendaftaran.');
         }
 
-        return view('pages.pendaftar.cek-status', compact('registration'));
+        $checkedRegistration = session('registration');
+        $sawResult = null;
+
+        if ($checkedRegistration) {
+            $checkedRegistration = $registration->fresh();
+            if (in_array($checkedRegistration->status, ['verified', 'lulus', 'tidak_lulus'])) {
+                $sawResult = $sawService->getCandidateResult($checkedRegistration->id);
+            }
+        }
+
+        return view('pages.pendaftar.cek-status', compact('registration', 'checkedRegistration', 'sawResult'));
     }
 
-  public function check(Request $request)
-  {
-      $request->validate([
-          'nisn' => 'required|digits:10',
-      ]);
+    public function check(Request $request)
+    {
+        $request->validate([
+            'nisn' => 'required|digits:10',
+        ]);
 
-      $registration = Registration::where('nisn', $request->nisn)->first();
+        // Cegah IDOR: batasi pengecekan hanya pada data pendaftaran milik user yang login
+        $registration = Registration::where('user_id', Auth::id())
+            ->where('nisn', $request->nisn)
+            ->first();
 
-      if (!$registration) {
-          return redirect()->route('pendaftar.cek-status')->with('not_found', true)->withInput();
-      }
+        if (! $registration) {
+            return redirect()->route('pendaftar.cek-status')->with('not_found', true)->withInput();
+        }
 
-      // Kirim data registration ke session
-      return redirect()->route('pendaftar.cek-status')->with('registration', $registration);
-  }
+        return redirect()->route('pendaftar.cek-status')->with('registration', $registration);
+    }
 
-  public function downloadPdf(Request $request)
-  {
-      // 1. Ambil NISN dari input form
-      $nisn = $request->input('nisn');
+    public function downloadPdf(Request $request)
+    {
+        // Cegah IDOR: hanya unduh bukti pendaftaran milik user yang sedang login
+        $registration = Registration::where('user_id', Auth::id())->firstOrFail();
 
-      // 2. Cari data berdasarkan NISN di Database
-      // Pastikan menggunakan model Registration yang benar
-      $reg = \App\Models\Registration::where('nisn', $nisn)->firstOrFail();
+        $settings = app(SettingService::class);
 
-      // 3. Ambil setting nama sekolah
-      $schoolName = app(SettingService::class)->get('school_name', 'Sekolah');
+        $pdf = Pdf::loadView('pages.pendaftar.pdf.bukti-pendaftaran', compact('registration', 'settings'))
+            ->setPaper('a4', 'portrait');
 
-      // 4. Load PDF
-      $pdf = \PDF::loadView('pdf.bukti-pendaftaran', compact('reg', 'schoolName'));
-
-      // 5. Download
-      return $pdf->download('Bukti-Pendaftaran-' . $reg->nisn . '.pdf');
-  }
+        return $pdf->download('Bukti-Pendaftaran-'.$registration->registration_number.'.pdf');
+    }
 }

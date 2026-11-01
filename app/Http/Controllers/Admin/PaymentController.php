@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
-use App\Models\Registration;
 use App\Services\SettingService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -19,8 +18,8 @@ class PaymentController extends Controller
             $search = $request->input('search');
             $query->whereHas('registration', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('nisn', 'like', "%{$search}%")
-                  ->orWhere('registration_number', 'like', "%{$search}%");
+                    ->orWhere('nisn', 'like', "%{$search}%")
+                    ->orWhere('registration_number', 'like', "%{$search}%");
             });
         }
 
@@ -44,6 +43,7 @@ class PaymentController extends Controller
     public function show($id)
     {
         $payment = Payment::with('registration.user')->findOrFail($id);
+
         return view('admin.payments.show', compact('payment'));
     }
 
@@ -73,11 +73,11 @@ class PaymentController extends Controller
             ];
         }
 
-        $filename = 'data_pembayaran_' . date('Y-m-d_His') . '.csv';
+        $filename = 'data_pembayaran_'.date('Y-m-d_His').'.csv';
 
         return response()->streamDownload(function () use ($csvData) {
             $handle = fopen('php://output', 'w');
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
             foreach ($csvData as $row) {
                 fputcsv($handle, $row);
             }
@@ -93,13 +93,14 @@ class PaymentController extends Controller
         $pdf = Pdf::loadView('admin.payments.pdf', compact('payments', 'schoolName'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download('data-pembayaran-' . date('d-m-Y') . '.pdf');
+        return $pdf->download('data-pembayaran-'.date('d-m-Y').'.pdf');
     }
 
     public function destroy($id)
     {
         $payment = Payment::findOrFail($id);
         $payment->delete();
+
         return redirect()->back()->with('success', 'Data pembayaran berhasil dihapus.');
     }
 
@@ -110,6 +111,7 @@ class PaymentController extends Controller
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
         }
         Payment::whereIn('id', $ids)->delete();
-        return redirect()->back()->with('success', count($ids) . ' data pembayaran berhasil dihapus.');
+
+        return redirect()->back()->with('success', count($ids).' data pembayaran berhasil dihapus.');
     }
 }

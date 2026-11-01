@@ -20,15 +20,16 @@ class AuthController extends Controller
         $throttleKey = $this->throttleKey();
         if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+
             return view('admin.auth.login', [
                 'banned' => true,
-                'wait_time' => $seconds
+                'wait_time' => $seconds,
             ]);
         }
 
         return view('admin.auth.login', [
             'banned' => false,
-            'wait_time' => 0
+            'wait_time' => 0,
         ]);
     }
 
@@ -50,7 +51,7 @@ class AuthController extends Controller
         }
 
         // Cek kredensial
-        if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             // Tambah hitungan salah
             RateLimiter::hit($throttleKey, 120); // 120 detik = 2 menit
 
@@ -80,10 +81,12 @@ class AuthController extends Controller
     }
 
     /**
-     * Membuat key unik untuk setiap IP address agar limitasi berlaku per-perangkat
+     * Membuat key unik berbasis kombinasi email dan IP address
      */
     private function throttleKey(): string
     {
-        return 'login|' . request()->ip();
+        $email = strtolower((string) request('email'));
+
+        return 'admin_login|'.$email.'|'.request()->ip();
     }
 }

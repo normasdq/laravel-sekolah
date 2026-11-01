@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Post;
-use App\Models\Teacher;
-use App\Models\Registration;
 use App\Models\Contact;
 use App\Models\Gallery;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Post;
+use App\Models\Registration;
+use App\Models\Teacher;
 
 class DashboardController extends Controller
 {
@@ -40,7 +39,8 @@ class DashboardController extends Controller
         if (in_array($userRole, ['admin', 'spmb'])) {
             $stats['total_registrations'] = Registration::count();
             $stats['pending_registrations'] = Registration::where('status', 'pending')->count();
-            $stats['verified_registrations'] = Registration::where('status', 'verified')->count();
+            $stats['verified_registrations'] = Registration::whereIn('status', ['verified', 'lulus', 'tidak_lulus'])->count();
+            $stats['lulus_registrations'] = Registration::where('status', 'lulus')->count();
             $stats['unread_messages'] = Contact::where('is_read', false)->count();
             $stats['total_galleries'] = Gallery::count();
         }

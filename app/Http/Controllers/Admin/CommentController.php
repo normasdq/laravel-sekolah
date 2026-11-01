@@ -13,8 +13,8 @@ class CommentController extends Controller
         $query = Comment::with(['post', 'user'])->latest();
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('body', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('body', 'like', '%'.$request->search.'%');
         }
 
         if ($request->filled('status')) {
@@ -30,18 +30,21 @@ class CommentController extends Controller
         }
 
         $comments = $query->paginate(15)->withQueryString();
+
         return view('admin.comments.index', compact('comments'));
     }
 
     public function approve(Comment $comment)
     {
         $comment->update(['is_approved' => true]);
+
         return back()->with('success', 'Komentar berhasil disetujui.');
     }
 
     public function destroy(Comment $comment)
     {
         $comment->delete();
+
         return back()->with('success', 'Komentar berhasil dihapus.');
     }
 }

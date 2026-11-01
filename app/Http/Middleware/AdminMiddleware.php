@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware; 
+namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
@@ -12,12 +12,12 @@ class AdminMiddleware
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('admin.login');
         }
 
         // Izinkan akses ke area admin untuk role admin, penulis, dan spmb
-        if (!in_array($user->role, ['admin', 'penulis', 'spmb'])) {
+        if (! in_array($user->role, ['admin', 'penulis', 'spmb'])) {
             abort(403, 'Akses ditolak.');
         }
 

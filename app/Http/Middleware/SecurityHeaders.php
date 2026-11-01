@@ -14,8 +14,13 @@ class SecurityHeaders
 
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
-        $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+        // HSTS hanya diaktifkan jika request melalui HTTPS atau di environment production
+        if ($request->isSecure() || app()->isProduction()) {
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+        }
 
         $cdn_domains = implode(' ', [
             'https://cdn.tailwindcss.com',
@@ -40,8 +45,11 @@ class SecurityHeaders
             "frame-src 'self' https://www.google.com https://www.google.co.id {$midtrans}",
             "connect-src 'self' {$cdn_domains} {$midtrans}",
             "worker-src 'self' blob:",
-            "upgrade-insecure-requests",
         ];
+
+        if ($request->isSecure() || app()->isProduction()) {
+            $csp[] = 'upgrade-insecure-requests';
+        }
 
         $response->headers->set('Content-Security-Policy', implode('; ', $csp));
 

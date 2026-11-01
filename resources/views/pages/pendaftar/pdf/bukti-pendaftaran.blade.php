@@ -198,15 +198,19 @@
         <!-- Header / Kop Surat -->
         <div class="header">
             <div class="header-logo">
-                <!-- Ganti source dengan logo sekolah jika ada -->
-                <img src="{{ public_path('assets/images/logo-tunas-harapan.png') }}" alt="Logo Sekolah"
-                    style="width: 80px;">
+                @if (extension_loaded('gd') && file_exists(public_path('assets/images/logo-tunas-harapan.png')))
+                    <img src="{{ public_path('assets/images/logo-tunas-harapan.png') }}" alt="Logo Sekolah"
+                        style="width: 80px;">
+                @else
+                    <div style="width: 70px; height: 70px; background-color: #1a5f7a; border-radius: 8px; text-align: center; line-height: 70px; color: #fff; font-size: 20pt; font-weight: bold;">
+                        TH
+                    </div>
+                @endif
             </div>
             <div class="header-text">
-                <h2>{{ $settings->get('school_name') }}</h2>
-                <p>JL. RS. Mekar Sari No 71.B Bekasi Jaya-Bekasi Timur 17112 Kota Bekasi</p>
-                <p>Email: smptupanbekasi71@gmail.com | Telp: 081770748835 | Website:
-                    https://smptunasharapanbekasi.sch.id/</p>
+                <h2>{{ $settings->get('school_name', 'SMP Tunas Harapan Bekasi') }}</h2>
+                <p>{{ $settings->get('school_address', 'JL. RS. Mekar Sari No 71.B Bekasi Jaya-Bekasi Timur 17112 Kota Bekasi') }}</p>
+                <p>Email: {{ $settings->get('school_email', 'smptupanbekasi71@gmail.com') }} | Telp: {{ $settings->get('school_phone', '081770748835') }}</p>
             </div>
         </div>
 
@@ -214,7 +218,7 @@
         <table class="registration-meta">
             <tr>
                 <td><strong>No. Registrasi:</strong> <span
-                        style="color: #1a5f7a;">#PPDB-{{ date('Y') }}-{{ str_pad($registration->id, 4, '0', STR_PAD_LEFT) }}</span>
+                        style="color: #1a5f7a;">{{ $registration->registration_number }}</span>
                 </td>
                 {{-- realtime jam --}}
                 <td style="text-align: right;"><strong>Tanggal Pendaftaran:</strong>
