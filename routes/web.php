@@ -257,3 +257,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
     });
 });
+
+// Fallback untuk melayani file publik jika symlink dinonaktifkan oleh shared hosting (InfinityFree)
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = storage_path('app/public/'.$path);
+    if (! file_exists($fullPath)) {
+        abort(404);
+    }
+
+    return response()->file($fullPath);
+})->where('path', '.*');
+
